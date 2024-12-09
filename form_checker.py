@@ -3,8 +3,7 @@ import requests
 import pandas as pd
 from typing import Dict, List, Optional
 from dataclasses import dataclass
-from tqdm import tqdm
-import time
+# from tqdm import tqdm
 
 
 @dataclass
@@ -79,31 +78,31 @@ class FormChecker:
                 'reasoning': None
             }
 
-    def process_forms(self, input_data: pd.DataFrame, output_file: Optional[str] = None) -> pd.DataFrame:
-        """
-        Process forms data through the API
+    # def process_forms(self, input_data: pd.DataFrame, output_file: Optional[str] = None) -> pd.DataFrame:
+    #     """
+    #     Process forms data through the API
         
-        Args:
-            input_data: DataFrame containing form data
-            output_file: Optional path to save results incrementally
+    #     Args:
+    #         input_data: DataFrame containing form data
+    #         output_file: Optional path to save results incrementally
             
-        Returns:
-            DataFrame containing results
-        """
-        results = []
-        start_time = time.time()
+    #     Returns:
+    #         DataFrame containing results
+    #     """
+    #     results = []
+    #     start_time = time.time()
         
-        for idx, row in tqdm(input_data.iterrows(), total=len(input_data.index), desc="Processing forms"):
-            result = self.make_api_call(row.astype(str).to_dict())
-            results.append(result)
+    #     for idx, row in tqdm(input_data.iterrows(), total=len(input_data.index), desc="Processing forms"):
+    #         result = self.make_api_call(row.astype(str).to_dict())
+    #         results.append(result)
             
-            if output_file:
-                pd.DataFrame(results).to_csv(output_file, index=False)
+    #         if output_file:
+    #             pd.DataFrame(results).to_csv(output_file, index=False)
         
-        elapsed_time = time.time() - start_time
-        print(f"\nProcessing completed in {elapsed_time:.2f} seconds")
+    #     elapsed_time = time.time() - start_time
+    #     print(f"\nProcessing completed in {elapsed_time:.2f} seconds")
         
-        if output_file:
-            print(f"Results saved to {output_file}")
+    #     if output_file:
+    #         print(f"Results saved to {output_file}")
             
-        return pd.DataFrame(results)
+    #     return pd.DataFrame(results)
