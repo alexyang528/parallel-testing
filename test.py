@@ -2,6 +2,7 @@
 import os
 import pandas as pd
 from datetime import datetime
+from tqdm import tqdm
 from clients.parallel_client import create_parallel_client, process_single_item
 
 def main():
@@ -23,13 +24,11 @@ def main():
     )
     
     # Read the input CSV
-    print("Reading W4 forms data...")
     df = pd.read_csv(f"data/{task_id}/{input_csv}")
-    print(f"Found {len(df)} forms to process")
 
-    # Process rows
+    # Process rows with tqdm progress bar
     results = []
-    for _, row in df.iterrows():
+    for _, row in tqdm(df.iterrows(), total=len(df), desc="Processing forms"):
         payload = row.astype(str).to_dict()
         arguments = ['jurisdiction', 'agency_url', 'description', 'current_form_revision']
 
