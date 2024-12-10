@@ -43,7 +43,7 @@ def main():
     client = create_parallel_client(
         api_key=api_key,
         task_id=task_id,
-        runner_name="mercury"
+        runner_name="krypton-80"
     )
     
     # Read the input CSV
