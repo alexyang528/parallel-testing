@@ -19,7 +19,7 @@ def main():
     client = create_parallel_client(
         api_key=api_key,
         task_id=task_id,
-        runner_name="mercury"
+        runner_name="krypton-80"
     )
     
     # Read the input CSV
@@ -35,7 +35,6 @@ def main():
 
         result = process_single_item(client, payload, arguments)
         results.append(result)
-        break
 
     # Create results directory with task ID if it doesn't exist
     results_dir = os.path.join("results", task_id)
