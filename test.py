@@ -19,7 +19,7 @@ def main():
     client = create_parallel_client(
         api_key=api_key,
         task_id=task_id,
-        runner_name="krypton-80"
+        runner_name="mercury"
     )
     
     # Read the input CSV
@@ -31,10 +31,9 @@ def main():
     results = []
     for _, row in df.iterrows():
         payload = row.astype(str).to_dict()
-        allowed_keys = {'jurisdiction', 'agency_url', 'description', 'current_form_revision'}
-        filtered_payload = {k: payload[k] for k in allowed_keys}
+        arguments = ['jurisdiction', 'agency_url', 'description', 'current_form_revision']
 
-        result = process_single_item(client, filtered_payload)
+        result = process_single_item(client, payload, arguments)
         results.append(result)
         break
 
