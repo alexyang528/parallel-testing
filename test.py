@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 import pandas as pd
+from datetime import datetime
 from clients.parallel_client import create_parallel_client, process_single_item
 
 def main():
@@ -12,6 +13,7 @@ def main():
     
     # Configure task
     task_id = "4209efe0-fdfa-4ca9-b865-5f4de1e05b46"
+    input_csv = "w_4_forms.csv"
     
     # Create the Parallel client
     client = create_parallel_client(
@@ -22,7 +24,7 @@ def main():
     
     # Read the input CSV
     print("Reading W4 forms data...")
-    df = pd.read_csv("data/w_4_forms.csv")
+    df = pd.read_csv(f"data/{task_id}/{input_csv}")
     print(f"Found {len(df)} forms to process")
 
     # Process rows
@@ -32,13 +34,22 @@ def main():
         allowed_keys = {'jurisdiction', 'agency_url', 'description', 'current_form_revision'}
         filtered_payload = {k: payload[k] for k in allowed_keys}
 
-
-        print(payload)
         result = process_single_item(client, filtered_payload)
         results.append(result)
         break
 
-    pd.DataFrame(results).to_csv("results/results.csv", index=False)
+    # Create results directory with task ID if it doesn't exist
+    results_dir = os.path.join("results", task_id)
+    os.makedirs(results_dir, exist_ok=True)
+
+    # Generate timestamp and create filename
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"results_{timestamp}.csv"
+    
+    # Save results with timestamp in task-specific directory
+    output_path = os.path.join(results_dir, filename)
+    pd.DataFrame(results).to_csv(output_path, index=False)
+    print(f"Results saved to: {output_path}")
         
     return pd.DataFrame(results)
 
