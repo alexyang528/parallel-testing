@@ -1,41 +1,82 @@
-# app.py
 import streamlit as st
 import pandas as pd
 import os
-from form_checker import FormChecker, FormCheckerConfig
+from datetime import datetime
 
-st.title("Form Checker")
-api_key = st.secrets["api_key"]
-results = []
-results_df = pd.read_csv("w_4_forms_results.csv")
+def format_timestamp(filename):
+    """Extract and format timestamp from results filename."""
+    # Extract timestamp portion (assumes format results_YYYYMMDD_HHMMSS.csv)
+    try:
+        timestamp_str = filename.split('results_')[1].replace('.csv', '')
+        timestamp = datetime.strptime(timestamp_str, '%Y%m%d_%H%M%S')
+        return timestamp.strftime('%B %d, %Y at %I:%M:%S %p')
+    except:
+        return filename
 
-if st.button("Process Forms"):
-    # Read the CSV
-    input_df = pd.read_csv('w_4_forms.csv')
+def get_available_results():
+    """Get all available results files organized by task ID."""
+    results_path = "results"
+    task_results = {}
     
-    # Initialize form checker
-    config = FormCheckerConfig(api_key=api_key)
-    checker = FormChecker(config)
+    # Check if results directory exists
+    if not os.path.exists(results_path):
+        return {}
     
-    # Process forms with progress bar
-    progress_bar = st.progress(0.0, text="Processing form updates...")
-    
-    for idx, row in input_df.iterrows():
-        result = checker.make_api_call(row)
-        results.append(result)
-        progress_bar.progress(idx / len(input_df.index), text="Processing form updates...")
-        print(f"{idx} of {len(input_df.index)} completed.")
-    
-    results_df = pd.DataFrame(results)
-    results_df.to_csv("w_4_forms_results.csv")
-    
-# Display results
-st.dataframe(results_df)
+    # Get all task folders
+    for task_id in os.listdir(results_path):
+        task_dir = os.path.join(results_path, task_id)
+        if os.path.isdir(task_dir):
+            # Get all CSV files in the task directory
+            csv_files = [f for f in os.listdir(task_dir) if f.endswith('.csv')]
+            if csv_files:
+                task_results[task_id] = csv_files
+                
+    return task_results
 
-# Download button
-st.download_button(
-    "Download Results",
-    results_df.to_csv(index=False),
-    "form_checker_results.csv",
-    "text/csv"
-)
+def main():
+    st.title("W4 Forms Processing Results")
+    
+    # Get available results
+    task_results = get_available_results()
+    
+    if not task_results:
+        st.warning("No results found. Please run the processing script first.")
+        return
+    
+    # Task ID selection
+    selected_task = st.selectbox(
+        "Select Task ID",
+        options=list(task_results.keys()),
+        format_func=lambda x: f"Task: {x}"
+    )
+    
+    # File selection with formatted timestamps
+    files = task_results[selected_task]
+    file_options = {format_timestamp(f): f for f in files}
+    selected_timestamp = st.selectbox(
+        "Select Result",
+        options=list(file_options.keys())
+    )
+    
+    selected_file = file_options[selected_timestamp]
+    file_path = os.path.join("results", selected_task, selected_file)
+    
+    # Load and display the selected CSV
+    try:
+        df = pd.read_csv(file_path)
+        st.dataframe(df)
+        
+        # Download button
+        csv = df.to_csv(index=False)
+        st.download_button(
+            label="Download Results",
+            data=csv,
+            file_name=selected_file,
+            mime='text/csv'
+        )
+        
+    except Exception as e:
+        st.error(f"Error loading file: {str(e)}")
+
+if __name__ == "__main__":
+    main()
